@@ -1,4 +1,4 @@
 ComplexNetworkClusteringAnalysis
 ================================
 
-Complex Network Clustering Analysis
+An implementation of Markov Clustering Algorithm
