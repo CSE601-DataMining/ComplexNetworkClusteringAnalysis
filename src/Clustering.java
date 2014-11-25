@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -100,9 +101,34 @@ public class Clustering {
 			cluster[i] = i;
 		}
 		
-		for (int i = 0; i < covered.length; i++) {
-			
-			for (int j = 0; j < covered.length; j++) {
+		HashMap<Integer,ArrayList<Integer>> attractors = new HashMap<Integer,ArrayList<Integer>>();
+		for (int i = 0; i < cluster.length; i++) {
+			if (adjMat[i][i] != 0)
+				attractors.put(i, new ArrayList<Integer>());
+		}
+		
+		
+		for (int i = 0; i < cluster.length; i++) {
+			for (int j = 0; j < cluster.length; j++) {
+				if (adjMat[j][i] != 0 && adjMat[i][i] != 0)
+				{
+					attractors.get(cluster[i]).add(j);
+					cluster[j] = cluster[i];
+					covered[j] = true;
+				}
+			}
+		}
+		
+		for (Integer attractor : attractors.keySet()) {
+			for (int i = 0; i < cluster.length; i++) {
+				if (!covered[i] && adjMat[attractor][i] != 0){
+					cluster[i] = cluster[attractor];
+					covered[i] = true;
+				}
+			}
+		}
+		
+			/*for (int j = 0; j < covered.length; j++) {
 				int parent = -1;
 				for (int j2 = 0; j2 < covered.length; j2++) {
 					if(!covered[j2] && adjMat[j][j2] != 0 && parent == -1)
@@ -118,7 +144,7 @@ public class Clustering {
 				}
 				
 			}
-		}
+		}*/
 		
 		try {
 			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd_HH_mm_ss");
