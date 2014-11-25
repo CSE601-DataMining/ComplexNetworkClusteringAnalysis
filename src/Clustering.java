@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 public class Clustering {
@@ -29,12 +30,21 @@ public class Clustering {
 		int m = textData.size();
 		int[][] data = new int[m][2];
 		int max = 0;
+		HashMap<String,Integer> map = new HashMap<String, Integer>();
+		int count = 0;
 		for (int i = 0; i < m; i++)
 		{
 			String[] tuple = textData.get(i).split("\\s+");
-
-			data[i][0] = Integer.parseInt(tuple[0]);
-			data[i][1] = Integer.parseInt(tuple[1]);
+			if (!map.containsKey(tuple[0]))
+			{
+				map.put(tuple[0], count++);
+			}
+			if (!map.containsKey(tuple[1]))
+			{
+				map.put(tuple[1], count++);
+			}
+			data[i][0] = map.get(tuple[0]);
+			data[i][1] = map.get(tuple[1]);
 			if (data[i][0] > max)
 				max = data[i][0];
 			if (data[i][1] > max)
@@ -42,11 +52,12 @@ public class Clustering {
 		}
 		
 		System.out.println("Enter Expansion and inflation");
-		int exp = 2, inf = 2;
+		int exp = 2;
+		double inf = 2;
 		try {
 			String input = br.readLine();
 			exp = Integer.parseInt(input.split("\\s")[0]);
-			inf = Integer.parseInt(input.split("\\s")[1]);
+			inf = Double.parseDouble(input.split("\\s")[1]);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -120,7 +131,7 @@ public class Clustering {
 			
 			for (String line: netData) {
 				if(!line.contains("\"")) continue;
-				int no = Integer.parseInt(line.substring(line.indexOf('"')+1, line.lastIndexOf('"')));
+				int no = map.get(line.substring(line.indexOf('"')+1, line.lastIndexOf('"')));
 				wr.println(cluster[no]);
 			}
 			wr.close();
@@ -131,9 +142,6 @@ public class Clustering {
 		catch (IOException e){
 			e.printStackTrace();
 		}
-		
-		
-		
 	}
 	
 	static boolean compare(double[][] a, double[][] b)
@@ -186,7 +194,7 @@ public class Clustering {
 		return c;
 	}
 	
-	static double[][] inflation (double a[][], int factor)
+	static double[][] inflation (double a[][], double factor)
 	{
 		for (int i = 0; i < a.length; i++) {
 			for (int j = 0; j < a.length; j++) {
