@@ -1,9 +1,13 @@
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class Clustering {
@@ -12,8 +16,9 @@ public class Clustering {
 		List<String> textData = null;
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		System.out.println("Enter the file name in data folder");
+		String file = "";
 		try {
-			String file = br.readLine();
+			file = br.readLine();
 			textData = Files.readAllLines(Paths.get("data/" + file), StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -26,7 +31,7 @@ public class Clustering {
 		int max = 0;
 		for (int i = 0; i < m; i++)
 		{
-			String[] tuple = textData.get(i).split("\\s");
+			String[] tuple = textData.get(i).split("\\s+");
 
 			data[i][0] = Integer.parseInt(tuple[0]);
 			data[i][1] = Integer.parseInt(tuple[1]);
@@ -47,7 +52,7 @@ public class Clustering {
 			e.printStackTrace();
 		}
 		
-		double [][]adjMat = new double[max][max];
+		double [][]adjMat = new double[max+1][max+1];
 		
 		for (int i = 0; i < m; i++)
 		{
@@ -69,6 +74,66 @@ public class Clustering {
 			if(compare(oldMat,adjMat))
 				break;
 		}
+		
+/*		for (int i = 0; i < adjMat.length; i++) {
+			for (int j = 0; j < adjMat.length; j++) {
+				System.out.print(adjMat[i][j] + " ");
+			}
+			System.out.println();
+		}*/
+		
+		boolean[] covered = new boolean[adjMat.length];
+		int[] cluster = new int[adjMat.length];
+		
+		for (int i = 0; i < cluster.length; i++) {
+			cluster[i] = i;
+		}
+		
+		for (int i = 0; i < covered.length; i++) {
+			
+			for (int j = 0; j < covered.length; j++) {
+				int parent = -1;
+				for (int j2 = 0; j2 < covered.length; j2++) {
+					if(!covered[j2] && adjMat[j][j2] != 0 && parent == -1)
+					{
+						parent = j2;
+						covered[j2] = true;
+					}
+					else if(adjMat[j][j2] != 0 && !covered[j2])
+					{
+						cluster[j2] = parent;
+						covered[j2] = true;
+					}
+				}
+				
+			}
+		}
+		
+		try {
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd_HH_mm_ss");
+			PrintWriter wr = new PrintWriter(Paths.get("result/" + formatter.format(new Date()) + ".clu").toString());
+			wr.println("*Vertices " + cluster.length);
+			
+			List<String> netData = null;
+			file = file.replace(".txt", ".net");
+			netData = Files.readAllLines(Paths.get("data/ForNewPajekFormat/" + file), StandardCharsets.UTF_8);
+			
+			for (String line: netData) {
+				if(!line.contains("\"")) continue;
+				int no = Integer.parseInt(line.substring(line.indexOf('"')+1, line.lastIndexOf('"')));
+				wr.println(cluster[no]);
+			}
+			wr.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (IOException e){
+			e.printStackTrace();
+		}
+		
+		
+		
 	}
 	
 	static boolean compare(double[][] a, double[][] b)
@@ -85,7 +150,7 @@ public class Clustering {
 	static double[][] normalize(double[][] a)
 	{
 		for (int i = 0; i < a.length; i++) {
-			int sum = 0;
+			double sum = 0;
 			for (int j = 0; j < a.length; j++) {
 				sum +=a[j][i];
 			}
